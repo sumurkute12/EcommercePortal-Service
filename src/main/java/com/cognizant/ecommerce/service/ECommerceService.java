@@ -46,9 +46,11 @@ public class ECommerceService {
 
 	private static final Logger log = LoggerFactory.getLogger(ECommerceService.class);
 
+	
+	
 	public JwtResponse authticate(JwtRequest authenticationRequest, HttpServletResponse response)
 			throws HttpClientErrorException {
-		ResponseEntity<JwtResponse> responseEntity = restTemplate.postForEntity(uri + "/authenticate",
+		ResponseEntity<JwtResponse> responseEntity = restTemplate.postForEntity("http://18.223.188.154:8008/authenticate",
 				authenticationRequest, JwtResponse.class);
 		this.jwtResponse = responseEntity.getBody();
 		this.jwtResponse.setJwttoken("Bearer " + jwtResponse.getJwttoken());
@@ -57,6 +59,8 @@ public class ECommerceService {
 		return this.jwtResponse;
 	}
 
+	
+	
 	public List<Product> getAllProducts() throws HttpClientErrorException {
 		List<Product> list = new ArrayList<>();
 		try {
@@ -64,7 +68,7 @@ public class ECommerceService {
 			headers.set("Authorization", jwtResponse.getJwttoken());
 			entity = new HttpEntity<>(headers);
 			
-			ResponseEntity<List<Product>> reponseEntity = restTemplate.exchange(uri + "/product/getAll", HttpMethod.GET,
+			ResponseEntity<List<Product>> reponseEntity = restTemplate.exchange("http://13.58.234.18:8001/product/getAll", HttpMethod.GET,
 					entity, new ParameterizedTypeReference<List<Product>>() {
 					});
 			list = reponseEntity.getBody();
@@ -78,7 +82,8 @@ public class ECommerceService {
 	public List<Product> searchByName(String name) {
 		String nameTemp = name.toLowerCase();
 		nameTemp = nameTemp.substring(0, 1).toUpperCase() + nameTemp.substring(1);
-		ResponseEntity<Product> responseEntity = restTemplate.exchange(uri + "/product/productByName/" + nameTemp,
+																
+		ResponseEntity<Product> responseEntity = restTemplate.exchange("http://13.58.234.18:8001/product/productByName/" + nameTemp,
 				HttpMethod.GET, entity, new ParameterizedTypeReference<Product>() {
 				});
 		Product product = responseEntity.getBody();
@@ -88,14 +93,12 @@ public class ECommerceService {
 	}
 
 	public StatusDTO addToCart(CartRequestDto request) {
-
 		StatusDTO status = new StatusDTO();
 		String s = "";
 		try {
 			request.setCustomerId(jwtResponse.getCustomerId());
 			HttpEntity<CartRequestDto> entityTemp = new HttpEntity<>(request, headers);
-			status = restTemplate.postForObject(uri + "/cart/addProductToCart", entityTemp, StatusDTO.class);
-
+			status = restTemplate.postForObject("http://3.15.37.156:8002/cart/addProductToCart", entityTemp, StatusDTO.class);			  																			 
 		} catch (Exception e) {
 			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
 		}
@@ -108,7 +111,6 @@ public class ECommerceService {
 			s = "{\"message\":\"" + status.getMessage() + "\"}";
 			status.setMessage(s);
 		}
-
 		return status;
 	}
 
@@ -118,8 +120,7 @@ public class ECommerceService {
 			headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 			headers.set("Authorization", jwtResponse.getJwttoken());
 			entity = new HttpEntity<>(headers);
-			ResponseEntity<List<CartResponseDto>> responseEntity = restTemplate.exchange(
-					uri + "/cart/getCart/" + jwtResponse.getCustomerId(), HttpMethod.GET, entity,
+			ResponseEntity<List<CartResponseDto>> responseEntity = restTemplate.exchange("http://3.15.37.156:8002/cart/getCart/" + jwtResponse.getCustomerId(), HttpMethod.GET, entity,
 					new ParameterizedTypeReference<List<CartResponseDto>>() {
 					});
 			list = responseEntity.getBody();
@@ -129,6 +130,8 @@ public class ECommerceService {
 		return list;
 	}
 
+	
+	
 	public List<CustomerWishListDTO> getWishlist() {
 		List<CustomerWishListDTO> list = new ArrayList<>();
 		try {
@@ -136,7 +139,7 @@ public class ECommerceService {
 			headers.set("Authorization", jwtResponse.getJwttoken());
 			entity = new HttpEntity<>(headers);
 			ResponseEntity<List<CustomerWishListDTO>> responseEntity = restTemplate.exchange(
-					uri + "/cart/getWishlist/" + jwtResponse.getCustomerId(), HttpMethod.GET, entity,
+					"http://3.15.37.156:8002/cart/getWishlist/" + jwtResponse.getCustomerId(), HttpMethod.GET, entity,
 					new ParameterizedTypeReference<List<CustomerWishListDTO>>() {
 					});
 			list = responseEntity.getBody();
@@ -145,20 +148,37 @@ public class ECommerceService {
 		}
 		return list;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 	public StatusDTO addToCustomerWishList(CustomerWishListRequestDTO customerWishlist) {
 		customerWishlist.setCustomerId(this.jwtResponse.getCustomerId());
 		HttpEntity<CustomerWishListRequestDTO> entityTemp = new HttpEntity<>(customerWishlist, headers);
-		return restTemplate.postForObject(uri + "/cart/addToCustomerWishlist", entityTemp, StatusDTO.class);
+		return restTemplate.postForObject("http://3.15.37.156:8002/cart/addToCustomerWishlist", entityTemp, StatusDTO.class);
 	}
 
 	public Product setRating(int productId, int rating) {
-		return restTemplate.postForObject(uri + "/product/addRating/" + productId + "/" + rating, entity,
-				Product.class);
+		return restTemplate.postForObject("http://13.58.234.18:8001/product/addRating/" + productId + "/" + rating, entity,Product.class);
 	}
 
 	public void logout() {
 		this.jwtResponse = null;
-
 	}
 }
